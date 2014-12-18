@@ -3,6 +3,7 @@
 require_once __DIR__.'/Base.php';
 
 use Model\Task;
+use Model\TaskCreation;
 use Model\TaskFinder;
 use Model\Project;
 use Model\Category;
@@ -11,7 +12,7 @@ class ActionTaskAssignColorCategory extends Base
 {
     public function testBadProject()
     {
-        $action = new Action\TaskAssignColorCategory($this->registry, 3, Task::EVENT_CREATE_UPDATE);
+        $action = new Action\TaskAssignColorCategory($this->container, 3, Task::EVENT_CREATE_UPDATE);
 
         $event = array(
             'project_id' => 2,
@@ -25,20 +26,20 @@ class ActionTaskAssignColorCategory extends Base
 
     public function testExecute()
     {
-        $action = new Action\TaskAssignColorCategory($this->registry, 1, Task::EVENT_CREATE_UPDATE);
+        $action = new Action\TaskAssignColorCategory($this->container, 1, Task::EVENT_CREATE_UPDATE);
         $action->setParam('category_id', 1);
         $action->setParam('color_id', 'blue');
 
         // We create a task in the first column
-        $t = new Task($this->registry);
-        $tf = new TaskFinder($this->registry);
-        $p = new Project($this->registry);
-        $c = new Category($this->registry);
+        $tc = new TaskCreation($this->container);
+        $tf = new TaskFinder($this->container);
+        $p = new Project($this->container);
+        $c = new Category($this->container);
 
         $this->assertEquals(1, $p->create(array('name' => 'test')));
         $this->assertEquals(1, $c->create(array('name' => 'c1')));
         $this->assertEquals(2, $c->create(array('name' => 'c2')));
-        $this->assertEquals(1, $t->create(array('title' => 'test', 'project_id' => 1, 'column_id' => 1, 'color_id' => 'green', 'category_id' => 2)));
+        $this->assertEquals(1, $tc->create(array('title' => 'test', 'project_id' => 1, 'column_id' => 1, 'color_id' => 'green', 'category_id' => 2)));
 
         // We create an event but we don't do anything
         $event = array(

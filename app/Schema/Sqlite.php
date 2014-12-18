@@ -5,7 +5,34 @@ namespace Schema;
 use Core\Security;
 use PDO;
 
-const VERSION = 33;
+const VERSION = 36;
+
+function version_36($pdo)
+{
+    $pdo->exec('ALTER TABLE project_has_users ADD COLUMN is_owner INTEGER DEFAULT "0"');
+}
+
+function version_35($pdo)
+{
+    $pdo->exec("
+        CREATE TABLE project_daily_summaries (
+            id INTEGER PRIMARY KEY,
+            day TEXT NOT NULL,
+            project_id INTEGER NOT NULL,
+            column_id INTEGER NOT NULL,
+            total INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY(column_id) REFERENCES columns(id) ON DELETE CASCADE,
+            FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
+        )
+    ");
+
+    $pdo->exec('CREATE UNIQUE INDEX project_daily_column_stats_idx ON project_daily_summaries(day, project_id, column_id)');
+}
+
+function version_34($pdo)
+{
+    $pdo->exec('ALTER TABLE projects ADD COLUMN is_everybody_allowed INTEGER DEFAULT "0"');
+}
 
 function version_33($pdo)
 {
@@ -435,7 +462,7 @@ function version_1($pdo)
     $pdo->exec("
         CREATE TABLE tasks (
             id INTEGER PRIMARY KEY,
-            title TEXT,
+            title TEXT NOT NULL,
             description TEXT,
             date_creation INTEGER,
             color_id TEXT,

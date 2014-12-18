@@ -51,6 +51,7 @@ class Config extends Base
             'es_ES' => 'Español',
             'fr_FR' => 'Français',
             'it_IT' => 'Italiano',
+            'hu_HU' => 'Magyar',
             'pl_PL' => 'Polski',
             'pt_BR' => 'Português (Brasil)',
             'ru_RU' => 'Русский',
@@ -58,6 +59,7 @@ class Config extends Base
             'sv_SE' => 'Svenska',
             'zh_CN' => '中文(简体)',
             'ja_JP' => '日本語',
+            'th_TH' => 'ไทย',
         );
     }
 

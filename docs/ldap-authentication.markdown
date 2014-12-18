@@ -5,18 +5,21 @@ Requirements
 ------------
 
 - LDAP extension for PHP
-- LDAP server (By example: OpenLDAP or Microsoft Active Directory)
+- LDAP server:
+    - OpenLDAP
+    - Microsoft Active Directory
+    - Novell eDirectory
 
 Workflow
 --------
 
 When the LDAP authentication is activated, the login process work like that:
 
-1. Try to authenticate the user by using the database
+1. Try first to authenticate the user by using the database
 2. If the user is not found inside the database, a LDAP authentication is performed
 3. If the LDAP authentication is successful, a local user is created automatically with no password and marked as LDAP user.
 
-Differences between a local user and a LDAP user are the following:
+### Differences between a local user and a LDAP user are the following:
 
 - LDAP users have no local passwords
 - LDAP users can't modify their password with the user interface
@@ -45,6 +48,9 @@ define('LDAP_PORT', 389);
 
 // By default, require certificate to be verified for ldaps:// style URL. Set to false to skip the verification.
 define('LDAP_SSL_VERIFY', true);
+
+// Enable LDAP START_TLS
+define('LDAP_START_TLS', false);
 
 // LDAP bind type: "anonymous", "user" (use the given user/password from the form) and "proxy" (a specific user to browse the LDAP directory)
 define('LDAP_BIND_TYPE', 'anonymous');

@@ -68,7 +68,7 @@ define('MAIL_SENDMAIL_COMMAND', '/usr/sbin/sendmail -bs');
 
 ### The sender email address
 
-By default, emails will use the sender address `notifications@kanboard.net`.
+By default, emails will use the sender address `notifications@kanboard.local`.
 It's not possible to reply to this address.
 
 You can customize this address by changing the value of the constant `MAIL_FROM` in your config file.
@@ -79,27 +79,10 @@ define('MAIL_FROM', 'notifications@kanboard.net');
 
 That can be useful if your SMTP server configuration doesn't accept the default address.
 
-
-### Check for due tasks
-
-Every day, Kanboard can check for due tasks, to do that you have to setup a cronjob on your server and use the Kanboard command line interface.
-
-Here a example:
-
-```bash
-# Everyday at 8am we check for due tasks
-0 8 * * *  cd /path/to/kanboard && ./kanboard send-notifications-due-tasks >/dev/null 2>&1
-```
-
 ### How to display a link to the task in notifications?
 
-To do that, you have to specify the URL of your Kanboard installation in your config file.
+To do that, you have to specify the URL of your Kanboard installation in your [Application Settings](http://kanboard.net/documentation/application-configuration).
 By default, nothing is defined, so no links will be displayed.
-
-```php
-// Your Kanboard base URL, example: http://demo.kanboard.net/ (used by email notifications or CLI scripts)
-define('KANBOARD_URL', '');
-```
 
 Examples:
 

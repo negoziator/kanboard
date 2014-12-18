@@ -3,6 +3,7 @@
 require_once __DIR__.'/Base.php';
 
 use Model\Task;
+use Model\TaskCreation;
 use Model\TaskFinder;
 use Model\Project;
 use Model\Category;
@@ -12,15 +13,15 @@ class CategoryTest extends Base
 {
     public function testCreation()
     {
-        $t = new Task($this->registry);
-        $tf = new TaskFinder($this->registry);
-        $p = new Project($this->registry);
-        $c = new Category($this->registry);
+        $tc = new TaskCreation($this->container);
+        $tf = new TaskFinder($this->container);
+        $p = new Project($this->container);
+        $c = new Category($this->container);
 
         $this->assertEquals(1, $p->create(array('name' => 'Project #1')));
         $this->assertEquals(1, $c->create(array('name' => 'Category #1', 'project_id' => 1)));
         $this->assertEquals(2, $c->create(array('name' => 'Category #2', 'project_id' => 1)));
-        $this->assertEquals(1, $t->create(array('title' => 'Task #1', 'project_id' => 1, 'category_id' => 2)));
+        $this->assertEquals(1, $tc->create(array('title' => 'Task #1', 'project_id' => 1, 'category_id' => 2)));
 
         $task = $tf->getById(1);
         $this->assertTrue(is_array($task));
@@ -31,19 +32,25 @@ class CategoryTest extends Base
         $this->assertEquals(2, $category['id']);
         $this->assertEquals('Category #2', $category['name']);
         $this->assertEquals(1, $category['project_id']);
+
+        $this->assertEquals(2, $c->getIdByName(1, 'Category #2'));
+        $this->assertEquals(0, $c->getIdByName(2, 'Category #2'));
+
+        $this->assertEquals('Category #2', $c->getNameById(2));
+        $this->assertEquals('', $c->getNameById(23));
     }
 
     public function testRemove()
     {
-        $t = new Task($this->registry);
-        $tf = new TaskFinder($this->registry);
-        $p = new Project($this->registry);
-        $c = new Category($this->registry);
+        $tc = new TaskCreation($this->container);
+        $tf = new TaskFinder($this->container);
+        $p = new Project($this->container);
+        $c = new Category($this->container);
 
         $this->assertEquals(1, $p->create(array('name' => 'Project #1')));
         $this->assertEquals(1, $c->create(array('name' => 'Category #1', 'project_id' => 1)));
         $this->assertEquals(2, $c->create(array('name' => 'Category #2', 'project_id' => 1)));
-        $this->assertEquals(1, $t->create(array('title' => 'Task #1', 'project_id' => 1, 'category_id' => 2)));
+        $this->assertEquals(1, $tc->create(array('title' => 'Task #1', 'project_id' => 1, 'category_id' => 2)));
 
         $task = $tf->getById(1);
         $this->assertTrue(is_array($task));

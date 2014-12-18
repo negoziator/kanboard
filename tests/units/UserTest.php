@@ -4,14 +4,24 @@ require_once __DIR__.'/Base.php';
 
 use Model\User;
 use Model\Task;
+use Model\TaskCreation;
 use Model\TaskFinder;
 use Model\Project;
 
 class UserTest extends Base
 {
+    public function testPassword()
+    {
+        $password = 'test123';
+        $hash = password_hash($password, PASSWORD_BCRYPT);
+
+        $this->assertNotEmpty($hash);
+        $this->assertTrue(password_verify($password, $hash));
+    }
+
     public function testPrepare()
     {
-        $u = new User($this->registry);
+        $u = new User($this->container);
 
         $input = array(
             'username' => 'user1',
@@ -62,9 +72,9 @@ class UserTest extends Base
 
     public function testCreate()
     {
-        $u = new User($this->registry);
-        $this->assertTrue($u->create(array('username' => 'toto', 'password' => '123456', 'name' => 'Toto')));
-        $this->assertTrue($u->create(array('username' => 'titi', 'is_ldap_user' => 1)));
+        $u = new User($this->container);
+        $this->assertNotFalse($u->create(array('username' => 'toto', 'password' => '123456', 'name' => 'Toto')));
+        $this->assertNotFalse($u->create(array('username' => 'titi', 'is_ldap_user' => 1)));
         $this->assertFalse($u->create(array('username' => 'toto')));
 
         $user = $u->getById(1);
@@ -94,8 +104,8 @@ class UserTest extends Base
 
     public function testUpdate()
     {
-        $u = new User($this->registry);
-        $this->assertTrue($u->create(array('username' => 'toto', 'password' => '123456', 'name' => 'Toto')));
+        $u = new User($this->container);
+        $this->assertNotFalse($u->create(array('username' => 'toto', 'password' => '123456', 'name' => 'Toto')));
         $this->assertTrue($u->update(array('id' => 2, 'username' => 'biloute')));
 
         $user = $u->getById(2);
@@ -109,14 +119,14 @@ class UserTest extends Base
 
     public function testRemove()
     {
-        $u = new User($this->registry);
-        $t = new Task($this->registry);
-        $tf = new TaskFinder($this->registry);
-        $p = new Project($this->registry);
+        $u = new User($this->container);
+        $tc = new TaskCreation($this->container);
+        $tf = new TaskFinder($this->container);
+        $p = new Project($this->container);
 
-        $this->assertTrue($u->create(array('username' => 'toto', 'password' => '123456', 'name' => 'Toto')));
+        $this->assertNotFalse($u->create(array('username' => 'toto', 'password' => '123456', 'name' => 'Toto')));
         $this->assertEquals(1, $p->create(array('name' => 'Project #1')));
-        $this->assertEquals(1, $t->create(array('title' => 'Task #1', 'project_id' => 1, 'owner_id' => 2)));
+        $this->assertEquals(1, $tc->create(array('title' => 'Task #1', 'project_id' => 1, 'owner_id' => 2)));
 
         $task = $tf->getById(1);
         $this->assertEquals(1, $task['id']);
@@ -131,5 +141,20 @@ class UserTest extends Base
         $task = $tf->getById(1);
         $this->assertEquals(1, $task['id']);
         $this->assertEquals(0, $task['owner_id']);
+
+        // Make sure that private projects are also removed
+        $user_id1 = $u->create(array('username' => 'toto1', 'password' => '123456', 'name' => 'Toto'));
+        $user_id2 = $u->create(array('username' => 'toto2', 'password' => '123456', 'name' => 'Toto'));
+        $this->assertNotFalse($user_id1);
+        $this->assertNotFalse($user_id2);
+        $this->assertEquals(2, $p->create(array('name' => 'Private project #1', 'is_private' => 1), $user_id1, true));
+        $this->assertEquals(3, $p->create(array('name' => 'Private project #2', 'is_private' => 1), $user_id2, true));
+
+        $this->assertTrue($u->remove($user_id1));
+
+        $this->assertNotEmpty($p->getById(1));
+        $this->assertNotEmpty($p->getById(3));
+
+        $this->assertEmpty($p->getById(2));
     }
 }

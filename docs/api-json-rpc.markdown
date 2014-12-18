@@ -144,12 +144,39 @@ Array
 Procedures
 ----------
 
+### getTimezone
+
+- Purpose: **Get the application timezone**
+- Parameters: none
+- Result on success: **Timezone** (Example: UTC, Europe/Paris)
+- Result on failure: **Default timezone** (UTC)
+
+Request example:
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "getTimezone",
+    "id": 1661138292
+}
+```
+
+Response example:
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1661138292,
+    "result": "Europe\/Paris"
+}
+```
+
 ### createProject
 
 - Purpose: **Create a new project**
 - Parameters:
     - **name** (string, required)
-- Result on success: **true**
+- Result on success: **project_id**
 - Result on failure: **false**
 
 Request example:
@@ -171,7 +198,7 @@ Response example:
 {
     "jsonrpc": "2.0",
     "id": 1797076613,
-    "result": true
+    "result": 2
 }
 ```
 
@@ -487,10 +514,9 @@ Response example:
 }
 ```
 
-### getAllowedUsers
+### getMembers
 
-- Purpose: **Get allowed users for a given project**
-- Note: Only people explicitly allowed are part of this list, administrators are always authorized
+- Purpose: **Get members of a project**
 - Parameters:
     - **project_id** (integer, required)
 - Result on success: Key/value pair of user_id and username
@@ -870,7 +896,7 @@ Response example:
     - **project_id** (integer, required)
     - **title** (string, required)
     - **task_limit** (integer, optional)
-- Result on success: **true**
+- Result on success: **column_id**
 - Result on failure: **false**
 
 Request example:
@@ -893,7 +919,7 @@ Response example:
 {
     "jsonrpc": "2.0",
     "id": 638544704,
-    "result": true
+    "result": 5
 }
 ```
 
@@ -943,7 +969,7 @@ Response example:
     - **score** (integer, optional)
     - **date_due**: ISO8601 format (string, optional)
     - **category_id** (integer, optional)
-- Result on success: **true**
+- Result on success: **task_id**
 - Result on failure: **false**
 
 Request example:
@@ -974,7 +1000,7 @@ Response example:
 {
     "jsonrpc": "2.0",
     "id": 1176509098,
-    "result": true
+    "result": 3
 }
 ```
 
@@ -1279,7 +1305,7 @@ Response example:
     - **email** (string, optional)
     - **is_admin** Set the value 1 for admins or 0 for regular users (integer, optional)
     - **default_project_id** (integer, optional)
-- Result on success: **true**
+- Result on success: **user_id**
 - Result on failure: **false**
 
 Request example:
@@ -1302,7 +1328,7 @@ Response example:
 {
     "jsonrpc": "2.0",
     "id": 1518863034,
-    "result": true
+    "result": 22
 }
 ```
 
@@ -1466,7 +1492,7 @@ Response example:
 - Parameters:
 - **project_id** (integer, required)
     - **name** (string, required, must be unique for the given project)
-- Result on success: **true**
+- Result on success: **category_id**
 - Result on failure: **false**
 
 Request example:
@@ -1489,7 +1515,7 @@ Response example:
 {
     "jsonrpc": "2.0",
     "id": 541909890,
-    "result": true
+    "result": 4
 }
 ```
 
@@ -1638,7 +1664,7 @@ Response example:
     - **task_id** (integer, required)
     - **user_id** (integer, required)
     - **content** Markdown content (string, required)
-- Result on success: **true**
+- Result on success: **comment_id**
 - Result on failure: **false**
 
 Request example:
@@ -1662,7 +1688,7 @@ Response example:
 {
     "jsonrpc": "2.0",
     "id": 1580417921,
-    "result": true
+    "result": 11
 }
 ```
 
@@ -1822,7 +1848,7 @@ Response example:
     - **time_estimated** (int, optional)
     - **time_spent** (int, optional)
     - **status** (int, optional)
-- Result on success: **true**
+- Result on success: **subtask_id**
 - Result on failure: **false**
 
 Request example:
@@ -1845,7 +1871,7 @@ Response example:
 {
     "jsonrpc": "2.0",
     "id": 2041554661,
-    "result": true
+    "result": 45
 }
 ```
 

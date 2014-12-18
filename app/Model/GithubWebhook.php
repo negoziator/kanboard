@@ -47,18 +47,21 @@ class GithubWebhook extends Base
      *
      * @access public
      * @param  string  $type      Github event type
-     * @param  string  $payload   Raw Github event (JSON)
+     * @param  array   $payload   Github event
+     * @return boolean
      */
-    public function parsePayload($type, $payload)
+    public function parsePayload($type, array $payload)
     {
-        $payload = json_decode($payload, true);
-
         switch ($type) {
             case 'push':
                 return $this->parsePushEvent($payload);
             case 'issues':
                 return $this->parseIssueEvent($payload);
+            case 'issue_comment':
+                return $this->parseCommentIssueEvent($payload);
         }
+
+        return false;
     }
 
     /**
@@ -66,6 +69,7 @@ class GithubWebhook extends Base
      *
      * @access public
      * @param  array   $payload   Event data
+     * @return boolean
      */
     public function parsePushEvent(array $payload)
     {
@@ -87,6 +91,8 @@ class GithubWebhook extends Base
                 $this->event->trigger(self::EVENT_COMMIT, array('task_id' => $task_id) + $task);
             }
         }
+
+        return true;
     }
 
     /**
@@ -94,32 +100,57 @@ class GithubWebhook extends Base
      *
      * @access public
      * @param  array   $payload   Event data
+     * @return boolean
      */
     public function parseIssueEvent(array $payload)
     {
         switch ($payload['action']) {
             case 'opened':
-                $this->handleIssueOpened($payload['issue']);
-                break;
+                return $this->handleIssueOpened($payload['issue']);
             case 'closed':
-                $this->handleIssueClosed($payload['issue']);
-                break;
+                return $this->handleIssueClosed($payload['issue']);
             case 'reopened':
-                $this->handleIssueReopened($payload['issue']);
-                break;
+                return $this->handleIssueReopened($payload['issue']);
             case 'assigned':
-                $this->handleIssueAssigned($payload['issue']);
-                break;
+                return $this->handleIssueAssigned($payload['issue']);
             case 'unassigned':
-                $this->handleIssueUnassigned($payload['issue']);
-                break;
+                return $this->handleIssueUnassigned($payload['issue']);
             case 'labeled':
-                $this->handleIssueLabeled($payload['issue'], $payload['label']);
-                break;
+                return $this->handleIssueLabeled($payload['issue'], $payload['label']);
             case 'unlabeled':
-                $this->handleIssueUnlabeled($payload['issue'], $payload['label']);
-                break;
+                return $this->handleIssueUnlabeled($payload['issue'], $payload['label']);
         }
+
+        return false;
+    }
+
+    /**
+     * Parse comment issue events
+     *
+     * @access public
+     * @param  array   $payload   Event data
+     * @return boolean
+     */
+    public function parseCommentIssueEvent(array $payload)
+    {
+        $task = $this->taskFinder->getByReference($payload['issue']['number']);
+        $user = $this->user->getByUsername($payload['comment']['user']['login']);
+
+        if ($task && $user) {
+
+            $event = array(
+                'project_id' => $this->project_id,
+                'reference' => $payload['comment']['id'],
+                'comment' => $payload['comment']['body'],
+                'user_id' => $user['id'],
+                'task_id' => $task['id'],
+            );
+
+            $this->event->trigger(self::EVENT_ISSUE_COMMENT, $event);
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -127,6 +158,7 @@ class GithubWebhook extends Base
      *
      * @access public
      * @param  array    $issue   Issue data
+     * @return boolean
      */
     public function handleIssueOpened(array $issue)
     {
@@ -138,6 +170,7 @@ class GithubWebhook extends Base
         );
 
         $this->event->trigger(self::EVENT_ISSUE_OPENED, $event);
+        return true;
     }
 
     /**
@@ -145,6 +178,7 @@ class GithubWebhook extends Base
      *
      * @access public
      * @param  array    $issue   Issue data
+     * @return boolean
      */
     public function handleIssueClosed(array $issue)
     {
@@ -158,7 +192,10 @@ class GithubWebhook extends Base
             );
 
             $this->event->trigger(self::EVENT_ISSUE_CLOSED, $event);
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -166,6 +203,7 @@ class GithubWebhook extends Base
      *
      * @access public
      * @param  array    $issue   Issue data
+     * @return boolean
      */
     public function handleIssueReopened(array $issue)
     {
@@ -179,7 +217,10 @@ class GithubWebhook extends Base
             );
 
             $this->event->trigger(self::EVENT_ISSUE_REOPENED, $event);
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -187,6 +228,7 @@ class GithubWebhook extends Base
      *
      * @access public
      * @param  array    $issue   Issue data
+     * @return boolean
      */
     public function handleIssueAssigned(array $issue)
     {
@@ -203,7 +245,10 @@ class GithubWebhook extends Base
             );
 
             $this->event->trigger(self::EVENT_ISSUE_ASSIGNEE_CHANGE, $event);
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -211,6 +256,7 @@ class GithubWebhook extends Base
      *
      * @access public
      * @param  array    $issue   Issue data
+     * @return boolean
      */
     public function handleIssueUnassigned(array $issue)
     {
@@ -226,7 +272,10 @@ class GithubWebhook extends Base
             );
 
             $this->event->trigger(self::EVENT_ISSUE_ASSIGNEE_CHANGE, $event);
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -235,6 +284,7 @@ class GithubWebhook extends Base
      * @access public
      * @param  array    $issue   Issue data
      * @param  array    $label   Label data
+     * @return boolean
      */
     public function handleIssueLabeled(array $issue, array $label)
     {
@@ -250,7 +300,10 @@ class GithubWebhook extends Base
             );
 
             $this->event->trigger(self::EVENT_ISSUE_LABEL_CHANGE, $event);
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -259,6 +312,7 @@ class GithubWebhook extends Base
      * @access public
      * @param  array    $issue   Issue data
      * @param  array    $label   Label data
+     * @return boolean
      */
     public function handleIssueUnlabeled(array $issue, array $label)
     {
@@ -275,6 +329,9 @@ class GithubWebhook extends Base
             );
 
             $this->event->trigger(self::EVENT_ISSUE_LABEL_CHANGE, $event);
+            return true;
         }
+
+        return false;
     }
 }

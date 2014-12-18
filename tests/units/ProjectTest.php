@@ -6,6 +6,7 @@ use Model\Project;
 use Model\ProjectPermission;
 use Model\User;
 use Model\Task;
+use Model\TaskCreation;
 use Model\Acl;
 use Model\Board;
 
@@ -13,7 +14,7 @@ class ProjectTest extends Base
 {
     public function testCreation()
     {
-        $p = new Project($this->registry);
+        $p = new Project($this->container);
 
         $this->assertEquals(1, $p->create(array('name' => 'UnitTest')));
 
@@ -28,7 +29,7 @@ class ProjectTest extends Base
 
     public function testUpdateLastModifiedDate()
     {
-        $p = new Project($this->registry);
+        $p = new Project($this->container);
         $this->assertEquals(1, $p->create(array('name' => 'UnitTest')));
 
         $now = time();
@@ -47,8 +48,8 @@ class ProjectTest extends Base
 
     public function testIsLastModified()
     {
-        $p = new Project($this->registry);
-        $t = new Task($this->registry);
+        $p = new Project($this->container);
+        $tc = new TaskCreation($this->container);
 
         $now = time();
         $p->attachEvents();
@@ -61,9 +62,9 @@ class ProjectTest extends Base
 
         sleep(1);
 
-        $this->assertEquals(1, $t->create(array('title' => 'Task #1', 'project_id' => 1)));
-        $this->assertTrue($this->registry->shared('event')->isEventTriggered(Task::EVENT_CREATE));
-        $this->assertEquals('Event\ProjectModificationDateListener', $this->registry->shared('event')->getLastListenerExecuted());
+        $this->assertEquals(1, $tc->create(array('title' => 'Task #1', 'project_id' => 1)));
+        $this->assertTrue($this->container['event']->isEventTriggered(Task::EVENT_CREATE));
+        $this->assertEquals('Event\ProjectModificationDateListener', $this->container['event']->getLastListenerExecuted());
 
         $project = $p->getById(1);
         $this->assertNotEmpty($project);
@@ -72,7 +73,7 @@ class ProjectTest extends Base
 
     public function testRemove()
     {
-        $p = new Project($this->registry);
+        $p = new Project($this->container);
 
         $this->assertEquals(1, $p->create(array('name' => 'UnitTest')));
         $this->assertTrue($p->remove(1));
@@ -81,7 +82,7 @@ class ProjectTest extends Base
 
     public function testEnable()
     {
-        $p = new Project($this->registry);
+        $p = new Project($this->container);
 
         $this->assertEquals(1, $p->create(array('name' => 'UnitTest')));
         $this->assertTrue($p->disable(1));
@@ -95,7 +96,7 @@ class ProjectTest extends Base
 
     public function testDisable()
     {
-        $p = new Project($this->registry);
+        $p = new Project($this->container);
 
         $this->assertEquals(1, $p->create(array('name' => 'UnitTest')));
         $this->assertTrue($p->disable(1));
@@ -110,7 +111,7 @@ class ProjectTest extends Base
 
     public function testEnablePublicAccess()
     {
-        $p = new Project($this->registry);
+        $p = new Project($this->container);
 
         $this->assertEquals(1, $p->create(array('name' => 'UnitTest')));
         $this->assertTrue($p->enablePublicAccess(1));
@@ -125,7 +126,7 @@ class ProjectTest extends Base
 
     public function testDisablePublicAccess()
     {
-        $p = new Project($this->registry);
+        $p = new Project($this->container);
 
         $this->assertEquals(1, $p->create(array('name' => 'UnitTest')));
         $this->assertTrue($p->enablePublicAccess(1));
@@ -137,37 +138,5 @@ class ProjectTest extends Base
         $this->assertEmpty($project['token']);
 
         $this->assertFalse($p->disablePublicAccess(123));
-    }
-
-    public function testDuplicate()
-    {
-        $p = new Project($this->registry);
-
-        // Clone public project
-        $this->assertEquals(1, $p->create(array('name' => 'Public')));
-        $this->assertEquals(2, $p->duplicate(1));
-
-        $project = $p->getById(2);
-        $this->assertNotEmpty($project);
-        $this->assertEquals('Public (Clone)', $project['name']);
-        $this->assertEquals(0, $project['is_private']);
-        $this->assertEquals(0, $project['is_public']);
-        $this->assertEmpty($project['token']);
-
-        // Clone private project
-        $this->assertEquals(3, $p->create(array('name' => 'Private', 'is_private' => 1), 1));
-        $this->assertEquals(4, $p->duplicate(3));
-
-        $project = $p->getById(4);
-        $this->assertNotEmpty($project);
-        $this->assertEquals('Private (Clone)', $project['name']);
-        $this->assertEquals(1, $project['is_private']);
-        $this->assertEquals(0, $project['is_public']);
-        $this->assertEmpty($project['token']);
-
-        $pp = new ProjectPermission($this->registry);
-
-        $this->assertEquals(array(1 => 'admin'), $pp->getAllowedUsers(3));
-        $this->assertEquals(array(1 => 'admin'), $pp->getAllowedUsers(4));
     }
 }

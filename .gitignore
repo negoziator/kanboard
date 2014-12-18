@@ -44,7 +44,6 @@ Thumbs.db
 *.swp
 .*.swp
 *~
-*.lock
 *.out
 
 # Vagrant #
@@ -55,3 +54,4 @@ Thumbs.db
 ################
 config.php
 data/files
+vendor
